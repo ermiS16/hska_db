@@ -19,6 +19,8 @@ import java.util.List;
  */
 public class JDBCBikeShop {
 
+	private final static String SQL_TYPE_CHAR  = "CHAR";
+	private final static String SQL_TYPE_NUMBER = "NUMBER";
     /**
      * Stellt die Datenbank aus der SQL-Datei wieder her.
      * - Alle Tabllen mit Inhalt ohne Nachfrage löschen.
@@ -31,7 +33,7 @@ public class JDBCBikeShop {
      * @param connection Geöffnete Verbindung zu dem DBMS, auf dem die
      * 					Bike-Datenbank wiederhergestellt werden soll. 
      */
-    public void reInitializeDB(Connection connection) {
+    public static void reInitializeDB(Connection connection) {
         try {
             System.out.println("\nInitializing DB.");
             connection.setAutoCommit(true);
@@ -66,6 +68,23 @@ public class JDBCBikeShop {
         }
     }
     
+    private static int getMaxColumDisplaySize(ResultSetMetaData meta) {
+    	int max = 0;
+    	int tmp = 0;
+    	try {
+	    	int columCount = meta.getColumnCount();
+	    	for(int index=1; index<=columCount; index++) {
+	    		tmp = meta.getColumnDisplaySize(index);
+	    		if(tmp > max) max = tmp;
+	    	}
+	    	
+    	} catch (SQLException e) {
+			e.printStackTrace();
+		}
+    	
+    	return max;
+    }
+    
     public static String getResult(Connection connection, String sqlQuery) 
     		throws SQLException{
     	List<String> resultString = new ArrayList<String>();
@@ -78,30 +97,59 @@ public class JDBCBikeShop {
     	int columIndex = 1;
     	String columTypeName = new String();
     	String columLabel = new String();
-    	
-    	for(int i = columIndex; i<=columCount; i++) {
-        	columLabel += " | " + meta.getColumnName(i);
-        	columTypeName += " | " + meta.getColumnTypeName(i);
+    	String columSeperator = "|  ";
+    	String seperatorLine = new String();
+//    	int colWidth = getMaxColumDisplaySize(meta);
+    	int colWidth;
+    	for(int i = 1; i<=columCount; i++) {
+    		colWidth = meta.getColumnDisplaySize(i);
+    		
+    		seperatorLine += String.format("%-" + colWidth + 
+    				"s", "-").replace(' ', '-');
+    		if(i<columCount) seperatorLine += "+--";
+    		
+    		columLabel += String.format("%-" + colWidth + "s",
+        			meta.getColumnName(i).toLowerCase());
+    		if(i<columCount) columLabel += columSeperator;
+
+        	columTypeName += String.format("%-" + colWidth + "s", 
+        			meta.getColumnTypeName(i).toLowerCase());
+        	if(i<columCount) columTypeName += columSeperator;
     	}
+    	
+    	System.out.println(columLabel);
+    	System.out.println(columTypeName);
+    	System.out.println(seperatorLine);
     	resultString.add(columLabel);
     	resultString.add(columTypeName);
+    	resultString.add(seperatorLine);
     	
     	while(resultSet.next()) {
     		String line = new String();
-    		for(int i=columIndex; i<=columCount; i++) {
+    		for(int i=1; i<=columCount; i++) {
+    			colWidth = meta.getColumnDisplaySize(i);
     			switch(meta.getColumnTypeName(i)) {
-    			case "CHAR" : line += resultSet.getString(i) + " | ";
+    			case SQL_TYPE_CHAR : line += 
+    					String.format("%-" + colWidth + "s",
+    							resultSet.getString(i));
+    					if(i<columCount) line += columSeperator;
     						break;
-    			case "NUMBER" :  line += resultSet.getInt(i) + " | ";
+    			case SQL_TYPE_NUMBER :  line += 
+    					String.format("%" + colWidth + "d", 
+    							resultSet.getInt(i));
+    					if(i<columCount) line += columSeperator;
     						break;
     			default: break;
     			}
     		}
+    		System.out.println(line);
     		resultString.add(line);
     	}
     	for(String string : resultString) {
     		result += string + "\n";
     	}
+    	
+    	stmt.close();
     	return result;
     }
 

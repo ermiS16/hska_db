@@ -31,6 +31,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -54,8 +56,8 @@ public class Gui extends Application{
 	private TextArea statementBox;
 	private Button submitStatement;
 	private TextArea solutionField;
-	
-	private Session session;
+	private Text solutionFieldText;
+//	private Session session;
 	
 	private String adName;
 	private String adPassword;
@@ -236,7 +238,13 @@ public class Gui extends Application{
 		submitStatement = new Button("Submit");
 		solutionField = new TextArea();
 		solutionField.setEditable(false);
-		solutionField.setMaxHeight(200);
+		solutionField.setMaxHeight(350);
+		solutionField.setStyle("-fx-font: monospace;" +
+								"-fx-font-family: monospace");
+		solutionFieldText = new Text();
+		solutionFieldText.setStyle("-fx-font: times new roman" +
+									"-fx-font-family: times new roman");
+//		solutionField.fontProperty().set(new Font("arial", 12));
 		dbShowResultNav = new HBox();
 		dbShowResultNav.getChildren().addAll(aReset, dbShowExit);
 		dbShowResultOption = new BorderPane();
@@ -244,6 +252,8 @@ public class Gui extends Application{
 		dbShowResultOption.setRight(submitStatement);
 		dbShowResult = new VBox();
 		dbShowResult.setPadding(new Insets(20, 10, 20, 10));
+		dbShowResult.getChildren().add(solutionField);
+//		dbShowResult.getChildren().add(solutionFieldText);
 		dbShow.setTop(dbShowResultNav);
 		dbShow.setCenter(dbShowResult);
 		dbShow.setBottom(dbShowResultOption);
@@ -268,7 +278,7 @@ public class Gui extends Application{
 		openCloseSSHTunnel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				if(sshIsOpen) { 
-					SSHUtils.close(session);
+					SSHUtils.close(application.getSession());
 					application.setSession(null);
 					System.out.println("SSH Tunnel Closed");
 					openCloseSSHTunnel.setText("Open SSH Tunnel");
@@ -305,9 +315,9 @@ public class Gui extends Application{
 					try {
 //						sshSession = new SSHUtils(adName, adHost, 
 //								adPassword, sshServer.get(SSH_HOST_NAME));
-						session = SSHUtils.open(adName, adHost, adPassword,
-								sshServer.get(SSH_HOST_NAME));
-						application.setSession(session);
+						application.setSession(SSHUtils.open(adName, adHost, adPassword,
+								sshServer.get(SSH_HOST_NAME)));
+//						application.setSession(application.getSession());
 						System.out.println("SSH Tunnel Established");
 						openSSHWindow.close();
 						sshUserPassword.clear();
@@ -423,7 +433,7 @@ public class Gui extends Application{
 		});
 		
 		Stage dbShowWindow = new Stage();
-		dbShowWindow.setScene(new Scene(dbShow, 600, 600));
+		dbShowWindow.setScene(new Scene(dbShow, 1000, 800));
 		showDatabase.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
 				dbShowWindow.show();
@@ -451,11 +461,14 @@ public class Gui extends Application{
 				try {
 					result = JDBCBikeShop.getResult(
 							application.getConnection(), sqlQuery);
-					
 					solutionField.setText(result);
-					dbShowResult.getChildren().add(solutionField);
-				} catch (SQLException e1) {
-					e1.printStackTrace();
+				} catch (SQLException ex) {
+					Alert sqlError = new Alert(AlertType.WARNING);
+					sqlError.setTitle("SQL Exception");
+					sqlError.setContentText(ex.getMessage());
+					sqlError.setResizable(true);
+					sqlError.show();
+					ex.printStackTrace();
 				}
 			}
 		});
