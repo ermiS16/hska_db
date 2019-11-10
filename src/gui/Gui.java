@@ -1,6 +1,11 @@
 package gui;
 
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +39,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.Scene;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class Gui extends Application{
@@ -56,9 +62,10 @@ public class Gui extends Application{
 	private TextArea statementBox;
 	private Button submitStatement;
 	private TextArea solutionField;
-	private Text solutionFieldText;
-//	private Session session;
-	
+	private Button loadFile;
+	private FileChooser fileChooser;
+	private File file;
+	private VBox sqlQueryButtons;
 	private String adName;
 	private String adPassword;
 	private String adHost;
@@ -229,8 +236,11 @@ public class Gui extends Application{
 	}
 	
 	public void initDBShowWindow() {
+		sqlQueryButtons = new VBox();
 		dbShow = new BorderPane();
-		dbShowResult = new VBox();		
+		dbShowResult = new VBox();
+		fileChooser = new FileChooser();
+		loadFile = new Button("Load File");
 		aReset = new Button("Reset");
 		dbShowExit = new Button("Exit");
 		statementBox = new TextArea();
@@ -241,19 +251,16 @@ public class Gui extends Application{
 		solutionField.setMaxHeight(350);
 		solutionField.setStyle("-fx-font: monospace;" +
 								"-fx-font-family: monospace");
-		solutionFieldText = new Text();
-		solutionFieldText.setStyle("-fx-font: times new roman" +
-									"-fx-font-family: times new roman");
-//		solutionField.fontProperty().set(new Font("arial", 12));
 		dbShowResultNav = new HBox();
 		dbShowResultNav.getChildren().addAll(aReset, dbShowExit);
 		dbShowResultOption = new BorderPane();
 		dbShowResultOption.setCenter(statementBox);
-		dbShowResultOption.setRight(submitStatement);
+		sqlQueryButtons.getChildren().addAll(submitStatement, loadFile);
+//		sqlQueryButtons.getChildren().add(loadFile);
+		dbShowResultOption.setRight(sqlQueryButtons);
 		dbShowResult = new VBox();
 		dbShowResult.setPadding(new Insets(20, 10, 20, 10));
 		dbShowResult.getChildren().add(solutionField);
-//		dbShowResult.getChildren().add(solutionFieldText);
 		dbShow.setTop(dbShowResultNav);
 		dbShow.setCenter(dbShowResult);
 		dbShow.setBottom(dbShowResultOption);
@@ -453,6 +460,40 @@ public class Gui extends Application{
 			}
 		});		
 
+		loadFile.setOnAction(new EventHandler<ActionEvent>() {
+			@Override public void handle(ActionEvent e) {
+				FileReader reader;
+				BufferedReader buff;
+				String line = new String();
+				String output = new String();
+				file = fileChooser.showOpenDialog(dbShowWindow);
+				if(file != null && file.getName().endsWith(".sql")) {
+					System.out.println("Datei geladen");
+					try {
+						reader = new FileReader(file);
+						buff = new BufferedReader(reader);
+						while(line != null) {
+							line = buff.readLine();
+							if(line != null) {
+								output += line + "\n";
+								System.out.println(line);
+							}
+							statementBox.setText(output);
+							System.out.println(output);
+						}
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}	
+//				}else {
+//					Alert noFile = new Alert(AlertType.WARNING);
+//					noFile.setTitle("Error");
+//					noFile.setContentText("Couldn't load File");
+//					noFile.show();
+//				}
+			}
+		});
+		
 		submitStatement.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
 				String sqlQuery = statementBox.getText();	
