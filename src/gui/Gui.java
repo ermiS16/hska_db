@@ -6,9 +6,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.hamcrest.Condition.Step;
+
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -41,9 +49,15 @@ import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 
 public class Gui extends Application{
 
+	private final String TASK_42 = "Aufgabe 4.2";
+	private final String TASK_43 = "Aufgabe 4.3";
+	private final String TASK_44 = "Aufgabe 4.4";
+	
 	private Map<String, String> databases;
 	private Map<String, String> databasesSSH;
 	private final String DATABASE_NO_SSH = "jdbc:oracle:thin:@iwi-i-db-01.hs-karlsruhe.de:1521:XE";
@@ -55,16 +69,20 @@ public class Gui extends Application{
 	private final String SSH_SERVER_NAME = "iwi-i-db-01";
 	
 	private App application;
+	
 	private Button aReset;
 	private Button dbShowExit;
 	private HBox dbShowResultNav;
 	private BorderPane dbShowResultOption;
 	private TextArea statementBox;
 	private Button submitStatement;
+	private TextArea currentSQLQuery;
 	private TextArea solutionField;
 	private Button loadFile;
 	private FileChooser fileChooser;
 	private File file;
+	private Button clearStatementBox;
+	private ComboBox<String> tasks;
 	private VBox sqlQueryButtons;
 	private String adName;
 	private String adPassword;
@@ -81,12 +99,10 @@ public class Gui extends Application{
 	private BorderPane dbWindow;
 	private GridPane dbWindowBase;
 	private BorderPane dbShow;
-//	private GridPane dbShowBase;
 	private VBox dbShowResult;
 	
 	private Button quit;
 	private Button openCloseSSHTunnel;
-	private Button closeSSHTunnel;
 	private Button sshOpen;
 	private Button sshCancel;
 	private Button dbConnect;
@@ -246,25 +262,32 @@ public class Gui extends Application{
 		statementBox = new TextArea();
 		statementBox.setPromptText("Filter");
 		submitStatement = new Button("Submit");
+		clearStatementBox = new Button("Clear");
+		tasks = new ComboBox<String>(FXCollections.observableArrayList(
+									TASK_42, TASK_43, TASK_44));
+		tasks.setPromptText("Aufgaben");
 		solutionField = new TextArea();
 		solutionField.setEditable(false);
+		solutionField.setMinHeight(350);
 		solutionField.setMaxHeight(350);
 		solutionField.setStyle("-fx-font: monospace;" +
 								"-fx-font-family: monospace");
+		currentSQLQuery = new TextArea();
+		currentSQLQuery.setEditable(false);
+		currentSQLQuery.setStyle("-fx-background-color: grey");
 		dbShowResultNav = new HBox();
 		dbShowResultNav.getChildren().addAll(aReset, dbShowExit);
 		dbShowResultOption = new BorderPane();
 		dbShowResultOption.setCenter(statementBox);
-		sqlQueryButtons.getChildren().addAll(submitStatement, loadFile);
-//		sqlQueryButtons.getChildren().add(loadFile);
+		sqlQueryButtons.getChildren().addAll(submitStatement, loadFile,
+												clearStatementBox, tasks);
 		dbShowResultOption.setRight(sqlQueryButtons);
 		dbShowResult = new VBox();
 		dbShowResult.setPadding(new Insets(20, 10, 20, 10));
-		dbShowResult.getChildren().add(solutionField);
+		dbShowResult.getChildren().addAll(solutionField, currentSQLQuery);
 		dbShow.setTop(dbShowResultNav);
 		dbShow.setCenter(dbShowResult);
-		dbShow.setBottom(dbShowResultOption);
-		
+		dbShow.setBottom(dbShowResultOption);		
 	}
 	
 	@Override
@@ -320,11 +343,8 @@ public class Gui extends Application{
 					adName = sshUserName.getText();
 					adPassword = sshUserPassword.getText();
 					try {
-//						sshSession = new SSHUtils(adName, adHost, 
-//								adPassword, sshServer.get(SSH_HOST_NAME));
 						application.setSession(SSHUtils.open(adName, adHost, adPassword,
 								sshServer.get(SSH_HOST_NAME)));
-//						application.setSession(application.getSession());
 						System.out.println("SSH Tunnel Established");
 						openSSHWindow.close();
 						sshUserPassword.clear();
@@ -443,54 +463,81 @@ public class Gui extends Application{
 		dbShowWindow.setScene(new Scene(dbShow, 1000, 800));
 		showDatabase.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
+//				initDBShowWindow();
 				dbShowWindow.show();
 			}
 		});
 		
 		dbShowExit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
+				solutionField.clear();
+				statementBox.clear();
 				dbShowWindow.hide();
-				initDBShowWindow();
 			}
 		});
 		
 		aReset.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				initDBShowWindow();
+				JDBCBikeShop.reInitializeDB(application.getConnection());
 			}
 		});		
 
 		loadFile.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
-				FileReader reader;
-				BufferedReader buff;
-				String line = new String();
-				String output = new String();
+//				List<String> line = new ArrayList<String>();
+				
 				file = fileChooser.showOpenDialog(dbShowWindow);
-				if(file != null && file.getName().endsWith(".sql")) {
+				if(file.getName().endsWith(".sql")) {
 					System.out.println("Datei geladen");
+					statementBox.clear();
 					try {
-						reader = new FileReader(file);
-						buff = new BufferedReader(reader);
-						while(line != null) {
-							line = buff.readLine();
-							if(line != null) {
-								output += line + "\n";
-								System.out.println(line);
-							}
-							statementBox.setText(output);
-							System.out.println(output);
-						}
+						setTextOnStatementBox(file);
+//						line = getContentFile(file);
+//						for(String str: line) {
+//							statementBox.appendText("\n"+str);
+//						}
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
 				}	
-//				}else {
-//					Alert noFile = new Alert(AlertType.WARNING);
-//					noFile.setTitle("Error");
-//					noFile.setContentText("Couldn't load File");
-//					noFile.show();
-//				}
+			}
+		});
+		
+		clearStatementBox.setOnAction(new EventHandler<ActionEvent>() {
+			@Override public void handle(ActionEvent e) {
+				statementBox.clear();
+			}
+		});
+		
+		tasks.setOnAction(new EventHandler<ActionEvent>() {
+			@Override public void handle(ActionEvent e) {
+				String selection = tasks.getValue();
+//				File file = null;
+				List<String> lines = new ArrayList<String>();
+				switch(selection) {
+				case TASK_42: file = new File("src/sql/aufgabe4.2.sql");
+					break;					
+				case TASK_43: file = new File("src/sql/aufgabe4.3.sql");
+					break;
+				case TASK_44: file = new File("src/sql/aufgabe4.4.sql");
+					break;
+				}
+				try {
+					if(file.getName().endsWith(".sql")) {
+						statementBox.clear();
+						setTextOnStatementBox(file);
+					}
+				}catch(IOException ex) {
+					Alert warning = new Alert(AlertType.WARNING);
+					warning.setTitle("Error Occured");
+					warning.setContentText(ex.getMessage());
+					warning.setResizable(true);
+					warning.show();
+					ex.printStackTrace();
+				}
+//				statementBox.clear();
+//				statementBox.setText(selection);
 			}
 		});
 		
@@ -498,11 +545,18 @@ public class Gui extends Application{
 			@Override public void handle(ActionEvent e) {
 				String sqlQuery = statementBox.getText();	
 				String result = new String();
-				
+				currentSQLQuery.setText("");
 				try {
-					result = JDBCBikeShop.getResult(
-							application.getConnection(), sqlQuery);
-					solutionField.setText(result);
+					String[] fileContents = sqlQuery.split(";");
+					
+					for(String query : fileContents) {
+						result = JDBCBikeShop.getResult(
+								application.getConnection(), query);						
+						
+						currentSQLQuery.appendText(query);
+						solutionField.setText(result);
+					}
+					
 				} catch (SQLException ex) {
 					Alert sqlError = new Alert(AlertType.WARNING);
 					sqlError.setTitle("SQL Exception");
@@ -520,4 +574,27 @@ public class Gui extends Application{
 		
 	}
 	
+	private void setTextOnStatementBox(File file) throws IOException {
+		List<String> line = new ArrayList<String>();
+		line = getContentFile(file);
+		for(String str: line) {
+			statementBox.appendText("\n"+str);
+		}
+		
+	}
+	
+	private List<String> getContentFile(File file) throws IOException {
+		List<String> result = new ArrayList<String>();
+		FileReader reader = new FileReader(file);
+		BufferedReader buff = new BufferedReader(reader);
+		String line = new String();
+		line = buff.readLine();
+		while(line != null) {
+			result.add(line);
+			line = buff.readLine();
+		}
+		buff.close();
+		reader.close();
+		return result;
+	}
 }
