@@ -1,3 +1,11 @@
+/**
+ * Application for Database
+ * 
+ * @author eric
+ * @version 1.1
+ * @date 12.11.2019
+ */
+
 package Main;
 
 import javafx.application.Application;

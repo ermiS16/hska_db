@@ -3,23 +3,15 @@ package gui;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hamcrest.Condition.Step;
-
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-
 import Main.App;
 import Net.ConnectionUtils;
 import Net.JDBCBikeShop;
@@ -44,19 +36,18 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.scene.Scene;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 
 public class Gui extends Application{
 
 	private final String TASK_42 = "Aufgabe 4.2";
 	private final String TASK_43 = "Aufgabe 4.3";
 	private final String TASK_44 = "Aufgabe 4.4";
+	private final String TASK_42_PATH = "src/sql/aufgabe4.2.sql";
+	private final String TASK_43_PATH = "src/sql/aufgabe4.3.sql";
+	private final String TASK_44_PATH = "src/sql/aufgabe4.4.sql";
 	
 	private Map<String, String> databases;
 	private Map<String, String> databasesSSH;
@@ -432,6 +423,7 @@ public class Gui extends Application{
 								databases.get(DATABASE_NAME), 
 								userNameDB, userPasswordDB));
 					}
+					application.getConnection().setAutoCommit(true);
 					showDatabase.setDisable(false);
 					dbConnection.setText("Disconect Database");
 					connectDBWindow.close();
@@ -463,7 +455,6 @@ public class Gui extends Application{
 		dbShowWindow.setScene(new Scene(dbShow, 1000, 800));
 		showDatabase.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
-//				initDBShowWindow();
 				dbShowWindow.show();
 			}
 		});
@@ -478,25 +469,18 @@ public class Gui extends Application{
 		
 		aReset.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
-				initDBShowWindow();
 				JDBCBikeShop.reInitializeDB(application.getConnection());
 			}
 		});		
 
 		loadFile.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
-//				List<String> line = new ArrayList<String>();
-				
 				file = fileChooser.showOpenDialog(dbShowWindow);
 				if(file.getName().endsWith(".sql")) {
 					System.out.println("Datei geladen");
 					statementBox.clear();
 					try {
 						setTextOnStatementBox(file);
-//						line = getContentFile(file);
-//						for(String str: line) {
-//							statementBox.appendText("\n"+str);
-//						}
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -513,14 +497,12 @@ public class Gui extends Application{
 		tasks.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				String selection = tasks.getValue();
-//				File file = null;
-				List<String> lines = new ArrayList<String>();
 				switch(selection) {
-				case TASK_42: file = new File("src/sql/aufgabe4.2.sql");
+				case TASK_42: file = new File(TASK_42_PATH);
 					break;					
-				case TASK_43: file = new File("src/sql/aufgabe4.3.sql");
+				case TASK_43: file = new File(TASK_43_PATH);
 					break;
-				case TASK_44: file = new File("src/sql/aufgabe4.4.sql");
+				case TASK_44: file = new File(TASK_44_PATH);
 					break;
 				}
 				try {
@@ -536,8 +518,6 @@ public class Gui extends Application{
 					warning.show();
 					ex.printStackTrace();
 				}
-//				statementBox.clear();
-//				statementBox.setText(selection);
 			}
 		});
 		
@@ -578,7 +558,7 @@ public class Gui extends Application{
 		List<String> line = new ArrayList<String>();
 		line = getContentFile(file);
 		for(String str: line) {
-			statementBox.appendText("\n"+str);
+			statementBox.appendText(str);
 		}
 		
 	}
@@ -590,6 +570,7 @@ public class Gui extends Application{
 		String line = new String();
 		line = buff.readLine();
 		while(line != null) {
+			line += "\n";
 			result.add(line);
 			line = buff.readLine();
 		}

@@ -1,0 +1,1 @@
+DELETE FROM kunde WHERE nr = 100;

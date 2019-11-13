@@ -20,6 +20,7 @@ public class JDBCBikeShop {
 
 	private final static String SQL_TYPE_CHAR = "CHAR";
 	private final static String SQL_TYPE_NUMBER = "NUMBER";
+	private final static String SQL_TYPE_DATE = "DATE";
 
 	/**
 	 * Stellt die Datenbank aus der SQL-Datei wieder her. - Alle Tabllen mit Inhalt
@@ -43,7 +44,7 @@ public class JDBCBikeShop {
 			int numStmts = 0;
 
 			// Liest den Inhalt der Datei ein.
-			String[] fileContents = new String(Files.readAllBytes(Paths.get("src/sql/hska_oracle_bike.sql")),
+			String[] fileContents = new String(Files.readAllBytes(Paths.get("src/sql/hska_bike.sql")),
 					StandardCharsets.UTF_8).split(";");
 
 			for (String sqlString : fileContents) {
@@ -67,6 +68,11 @@ public class JDBCBikeShop {
 		}
 	}
 
+	/**
+	 * @deprecated
+	 * @param meta
+	 * @return
+	 */
 	private static int getMaxColumDisplaySize(ResultSetMetaData meta) {
 		int max = 0;
 		int tmp = 0;
@@ -89,18 +95,14 @@ public class JDBCBikeShop {
 			throws SQLException {
 		List<String> resultString = new ArrayList<String>();
 		String result = new String();
-		connection.setAutoCommit(false);
 		Statement stmt = connection.createStatement();
 		ResultSet resultSet = stmt.executeQuery(sqlQuery);
-//    	connection.commit();
 		ResultSetMetaData meta = resultSet.getMetaData();
 		int columCount = meta.getColumnCount();
-		int columIndex = 1;
 		String columTypeName = new String();
 		String columLabel = new String();
 		String columSeperator = "|  ";
 		String seperatorLine = new String();
-//    	int colWidth = getMaxColumDisplaySize(meta);
 		int colWidth;
 		for (int i = 1; i <= columCount; i++) {
 			colWidth = meta.getColumnDisplaySize(i);
@@ -146,8 +148,13 @@ public class JDBCBikeShop {
 						if (i < columCount)
 							line += columSeperator;
 						break;
-					default:
+					case SQL_TYPE_DATE:
+						line += String.format("%-" + colWidth + "t",
+								resultSet.getDate(i));
+						if(i < columCount)
+							line += columSeperator;
 						break;
+					default: break;
 					}
 				}
 				System.out.println(line);
@@ -159,6 +166,7 @@ public class JDBCBikeShop {
 		}
 
 		stmt.close();
+		resultSet.close();
 		return result;
 	}
 

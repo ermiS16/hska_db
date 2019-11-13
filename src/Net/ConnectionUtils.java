@@ -16,7 +16,6 @@ public class ConnectionUtils {
 		connectionProps.put("user", userName);
 		connectionProps.put("password", userPassword);
 		return DriverManager.getConnection(databaseURL, userName, userPassword);
-//		return connection;
 	}
 
 	public static void disconnect(Connection connection) throws SQLException {
