@@ -132,7 +132,7 @@ public class JDBCBikeShop {
 		
 		if (columCount != 0) {
 			while (resultSet.next()) {
-				String line = new String();
+				String line = "";
 				for (int i = 1; i <= columCount; i++) {
 					colWidth = meta.getColumnDisplaySize(i);
 					switch (meta.getColumnTypeName(i)) {
