@@ -149,7 +149,7 @@ public class JDBCBikeShop {
 							line += columSeperator;
 						break;
 					case SQL_TYPE_DATE:
-						line += String.format("%-" + colWidth + "t",
+						line += String.format("%-" + colWidth + "s",
 								resultSet.getDate(i));
 						if(i < columCount)
 							line += columSeperator;
