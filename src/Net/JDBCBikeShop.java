@@ -43,7 +43,7 @@ public class JDBCBikeShop {
 			int numStmts = 0;
 
 			// Liest den Inhalt der Datei ein.
-			String[] fileContents = new String(Files.readAllBytes(Paths.get("src/sql/hska_oracle_bike.sql")),
+			String[] fileContents = new String(Files.readAllBytes(Paths.get("src/sql/hska_bike.sql")),
 					StandardCharsets.UTF_8).split(";");
 
 			for (String sqlString : fileContents) {
@@ -88,7 +88,7 @@ public class JDBCBikeShop {
 	public static String getResult(Connection connection, String sqlQuery) 
 			throws SQLException {
 		List<String> resultString = new ArrayList<String>();
-		String result = new String();
+		String result = "";
 		connection.setAutoCommit(false);
 		Statement stmt = connection.createStatement();
 		ResultSet resultSet = stmt.executeQuery(sqlQuery);
@@ -96,10 +96,10 @@ public class JDBCBikeShop {
 		ResultSetMetaData meta = resultSet.getMetaData();
 		int columCount = meta.getColumnCount();
 		int columIndex = 1;
-		String columTypeName = new String();
-		String columLabel = new String();
+		String columTypeName = "";
+		String columLabel = "";
 		String columSeperator = "|  ";
-		String seperatorLine = new String();
+		String seperatorLine = "";
 //    	int colWidth = getMaxColumDisplaySize(meta);
 		int colWidth;
 		for (int i = 1; i <= columCount; i++) {
@@ -130,7 +130,7 @@ public class JDBCBikeShop {
 		
 		if (columCount != 0) {
 			while (resultSet.next()) {
-				String line = new String();
+				String line = "";
 				for (int i = 1; i <= columCount; i++) {
 					colWidth = meta.getColumnDisplaySize(i);
 					switch (meta.getColumnTypeName(i)) {

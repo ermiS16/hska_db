@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hamcrest.Condition.Step;
 
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -218,7 +217,7 @@ public class Gui extends Application{
 		sshWindowBase.add(sshHostSelection, 1, 3);
 		sshWindowBase.add(sshOpen, 0, 4);
 		sshWindowBase.add(sshCancel, 1, 4);
-		sshWindow.setCenter(sshWindowBase);;
+		sshWindow.setCenter(sshWindowBase);
 
 	}
 	
@@ -544,7 +543,7 @@ public class Gui extends Application{
 		submitStatement.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
 				String sqlQuery = statementBox.getText();	
-				String result = new String();
+				String result = "";
 				currentSQLQuery.setText("");
 				try {
 					String[] fileContents = sqlQuery.split(";");
@@ -587,7 +586,7 @@ public class Gui extends Application{
 		List<String> result = new ArrayList<String>();
 		FileReader reader = new FileReader(file);
 		BufferedReader buff = new BufferedReader(reader);
-		String line = new String();
+		String line = "";
 		line = buff.readLine();
 		while(line != null) {
 			result.add(line);
