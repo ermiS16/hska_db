@@ -30,6 +30,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Separator;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
@@ -61,6 +62,7 @@ public class Gui extends Application{
 	
 	private App application;
 	
+	private TabPane tabPane;
 	private Button aReset;
 	private Button dbShowExit;
 	private HBox dbShowResultNav;
@@ -243,6 +245,7 @@ public class Gui extends Application{
 	}
 	
 	public void initDBShowWindow() {
+		tabPane = new TabPane();
 		sqlQueryButtons = new VBox();
 		dbShow = new BorderPane();
 		dbShowResult = new VBox();
@@ -295,6 +298,7 @@ public class Gui extends Application{
 		
 		
 		Stage openSSHWindow = new Stage();
+		openSSHWindow.setTitle("SSH Tunnel");
 		openSSHWindow.setScene(new Scene(sshWindow, 300, 150));
 		openCloseSSHTunnel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
@@ -367,6 +371,7 @@ public class Gui extends Application{
 		});
 		
 		Stage connectDBWindow = new Stage();
+		connectDBWindow.setTitle("Database Connect");
 		connectDBWindow.setScene(new Scene(dbWindow, 300, 150));
 		dbConnection.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
@@ -452,6 +457,7 @@ public class Gui extends Application{
 		});
 		
 		Stage dbShowWindow = new Stage();
+		dbShowWindow.setTitle("Showroom");
 		dbShowWindow.setScene(new Scene(dbShow, 1000, 800));
 		showDatabase.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
@@ -527,14 +533,15 @@ public class Gui extends Application{
 				String result = "";
 				currentSQLQuery.setText("");
 				try {
-					String[] fileContents = sqlQuery.split(";");
+					String[] fileContents = sqlQuery.trim().split(";");
 					
 					for(String query : fileContents) {
-						result = JDBCBikeShop.getResult(
+							result = JDBCBikeShop.getResult(
 								application.getConnection(), query);						
 						
-						currentSQLQuery.appendText(query);
-						solutionField.setText(result);
+							currentSQLQuery.appendText(query);
+							solutionField.setText(result);
+						
 					}
 					
 				} catch (SQLException ex) {
