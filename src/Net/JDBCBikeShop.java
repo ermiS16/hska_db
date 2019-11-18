@@ -18,6 +18,9 @@ import java.util.List;
  */
 public class JDBCBikeShop {
 
+	/**
+	 * SQL Types
+	 */
 	private final static String SQL_TYPE_CHAR = "CHAR";
 	private final static String SQL_TYPE_NUMBER = "NUMBER";
 	private final static String SQL_TYPE_DATE = "DATE";
@@ -69,88 +72,110 @@ public class JDBCBikeShop {
 	}
 
 	/**
-	 * @deprecated
-	 * @param meta
-	 * @return
+	 * 
+	 * @param connection of the Database
+	 * @param sqlQuery to execute
+	 * @return the Result of the SQL Statement
+	 * @throws SQLException
 	 */
-	private static int getMaxColumDisplaySize(ResultSetMetaData meta) {
-		int max = 0;
-		int tmp = 0;
-		try {
-			int columCount = meta.getColumnCount();
-			for (int index = 1; index <= columCount; index++) {
-				tmp = meta.getColumnDisplaySize(index);
-				if (tmp > max)
-					max = tmp;
-			}
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-
-		return max;
-	}
-
 	public static String getResult(Connection connection, String sqlQuery) 
 			throws SQLException {
 		List<String> resultString = new ArrayList<String>();
 		String result = new String();
-		Statement stmt = connection.createStatement();
-		ResultSet resultSet = stmt.executeQuery(sqlQuery);
-		ResultSetMetaData meta = resultSet.getMetaData();
-		int columCount = meta.getColumnCount();
 		String columTypeName = new String();
 		String columLabel = new String();
 		String columSeperator = "|  ";
 		String seperatorLine = new String();
 		int colWidth;
+
+		//Creates Statement and executing a sqlQuery
+		Statement stmt = connection.createStatement();
+		ResultSet resultSet = stmt.executeQuery(sqlQuery);
+		
+		//Metadata, for Colum,-types, names and maxwidth
+		ResultSetMetaData meta = resultSet.getMetaData();
+		int columCount = meta.getColumnCount();
+
+		//Iterate trough all Column to get the colum names and types
 		for (int i = 1; i <= columCount; i++) {
+			
+			//Get the current Columnwidth
 			colWidth = meta.getColumnDisplaySize(i);
 
+			//Creates the bottom seperatorline for the current column
 			seperatorLine += String.format("%-" + colWidth + 
 					"s", "-").replace(' ', '-');
 			if (i < columCount)
 				seperatorLine += "+--";
 
+			//Creates the Name of the Column
 			columLabel += String.format("%-" + colWidth + "s",
 					meta.getColumnName(i).toLowerCase());
 			if (i < columCount)
 				columLabel += columSeperator;
 
+			//Creates the Type of the Column as String
 			columTypeName += String.format("%-" + colWidth + "s",
 					meta.getColumnTypeName(i).toLowerCase());
 			if (i < columCount)
 				columTypeName += columSeperator;
 		}
-
+		
+		//Output on console
 		System.out.println(columLabel);
 		System.out.println(columTypeName);
 		System.out.println(seperatorLine);
+		
+		//Adding the rows to a Result List
 		resultString.add(columLabel);
 		resultString.add(columTypeName);
 		resultString.add(seperatorLine);
 		
+		//Check if there are Columns to iterate through
 		if (columCount != 0) {
+			//Iterate through all rows
 			while (resultSet.next()) {
-				String line = "";
+				String line = new String();
+				
+				//Go through all columns in the current row
 				for (int i = 1; i <= columCount; i++) {
+					
+					//Getting the specific max size of the column
 					colWidth = meta.getColumnDisplaySize(i);
+					
+					//Check the Type of the current column
+					//and build the row together
 					switch (meta.getColumnTypeName(i)) {
 					case SQL_TYPE_CHAR:
+						
+						//Left bounded, length colWidth, String specifier
 						line += String.format("%-" + colWidth + "s", 
 								resultSet.getString(i));
+						
+						//Adds a Seperator between the column
+						//if the current column isn't the last one
 						if (i < columCount)
 							line += columSeperator;
 						break;
+
 					case SQL_TYPE_NUMBER:
+						
+						//Right bounded, length colWidth, decimal specifier
 						line += String.format("%" + colWidth + "d", 
 								resultSet.getInt(i));
+
+						//Adds a Seperator between the column
+						//if the current column isn't the last one
 						if (i < columCount)
 							line += columSeperator;
 						break;
 					case SQL_TYPE_DATE:
+						//Left bounded, length colWidth, String specifier
 						line += String.format("%-" + colWidth + "s",
 								resultSet.getDate(i));
+						
+						//Adds a Seperator between the column
+						//if the current column isn't the last one
 						if(i < columCount)
 							line += columSeperator;
 						break;
@@ -158,21 +183,19 @@ public class JDBCBikeShop {
 					}
 				}
 				System.out.println(line);
+
+				//Adds the row to the result List
 				resultString.add(line);
 			}
 		}
+		//Adds a linebreak at every end of line
 		for (String string : resultString) {
 			result += string + "\n";
 		}
 
+		//clean up and return the List of rows.
 		stmt.close();
 		resultSet.close();
-		return result;
-	}
-
-	public static List<String> createSQLStatements(List<String> lines) {
-		List<String> result = new ArrayList<String>();
-
 		return result;
 	}
 

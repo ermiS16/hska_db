@@ -145,6 +145,9 @@ public class Gui extends Application{
 		application = new App();
 	}
 	
+	/**
+	 * Initialzing the Nodes of the main Window
+	 */
 	public void initMainWindow() {
 		base = new GridPane();
 		sep1 = new Separator();
@@ -184,6 +187,9 @@ public class Gui extends Application{
 		base.add(showDatabase, 2, 6);		
 	}
 	
+	/**
+	 * Initialiting the Nodes of the SSH Tunnel Window
+	 */
 	public void initSSHConnectionWindow() {
 		sshWindow = new BorderPane();
 		sshWindowBase = new GridPane();
@@ -215,6 +221,9 @@ public class Gui extends Application{
 
 	}
 	
+	/**
+	 * Initializing the Nodes of the Database Connection Window
+	 */
 	public void initDBConnectionWindow() {
 		dbWindow = new BorderPane();
 		dbWindowBase = new GridPane();
@@ -244,6 +253,9 @@ public class Gui extends Application{
 
 	}
 	
+	/**
+	 * Initializing the Nodes of the Database Show Window
+	 */
 	public void initDBShowWindow() {
 		tabPane = new TabPane();
 		sqlQueryButtons = new VBox();
@@ -289,6 +301,10 @@ public class Gui extends Application{
 		BorderPane root = new BorderPane();
 		root.setCenter(base);
 		
+		/**
+		 * Implementation of the Quit Button on the Main Window
+		 * Exits the Application
+		 */
 		quit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				Platform.exit();
@@ -297,9 +313,15 @@ public class Gui extends Application{
 		});
 		
 		
+		//Creates a new Stage, for the SSH Connection
 		Stage openSSHWindow = new Stage();
 		openSSHWindow.setTitle("SSH Tunnel");
 		openSSHWindow.setScene(new Scene(sshWindow, 300, 150));
+		
+		/**
+		 * If a SSH Tunnel is open, the tunnel will be closed.
+		 * Otherwise the Conenction Window is shown.
+		 */
 		openCloseSSHTunnel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				if(sshIsOpen) { 
@@ -314,6 +336,10 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Shows a Alert Window, with the Information of the
+		 * current Connection.
+		 */
 		sshConnectionInfo.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				Alert info = new Alert(AlertType.INFORMATION);
@@ -331,6 +357,10 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Opens a new SSH Tunnel with the given parameters.
+		 * The Session is set in the application.
+		 */
 		sshOpen.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				if(!sshIsOpen) {
@@ -362,6 +392,9 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Closes the window and resets the TextFields
+		 */
 		sshCancel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				openSSHWindow.hide();
@@ -370,9 +403,16 @@ public class Gui extends Application{
 			}
 		});
 		
+		//Creates a new Stage for the Conenction Window for the Database
 		Stage connectDBWindow = new Stage();
 		connectDBWindow.setTitle("Database Connect");
 		connectDBWindow.setScene(new Scene(dbWindow, 300, 150));
+		
+		/**
+		 * If a DB connection is open, the connection will be closed.
+		 * Otherwise the Window is shown, where a new connection can
+		 * be established.
+		 */
 		dbConnection.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				if(dbIsConnected) {
@@ -397,6 +437,11 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Shows a Alert Window with the Information of the
+		 * current Connection. The Information is the name of
+		 * the Database and the driver, that the conneciton uses.
+		 */
 		dbConnectionInfo.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				Alert info = new Alert(AlertType.INFORMATION);
@@ -414,6 +459,11 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Connect to a Database and sets the Connection in
+		 * the application. Checks first if a SSH Tunnel is open
+		 * or not.
+		 */
 		dbConnect.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				userNameDB = dbName.getText();
@@ -448,6 +498,9 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Closes the Connectionwindow and resets the textFields.
+		 */
 		dbCancel.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				connectDBWindow.hide();
@@ -456,15 +509,23 @@ public class Gui extends Application{
 			}
 		});
 		
+		//Creates a new Stage for the Show Window of the Database
 		Stage dbShowWindow = new Stage();
 		dbShowWindow.setTitle("Showroom");
 		dbShowWindow.setScene(new Scene(dbShow, 1000, 800));
+		
+		/**
+		 * Shows the ShowDatabase Window.
+		 */
 		showDatabase.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
 				dbShowWindow.show();
 			}
 		});
 		
+		/**
+		 * CLoses the ShowDatabase Window and resets the TextAreas.
+		 */
 		dbShowExit.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				solutionField.clear();
@@ -473,12 +534,21 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Reinitializing of the Database with the BikeShop
+		 */
 		aReset.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				JDBCBikeShop.reInitializeDB(application.getConnection());
+				currentSQLQuery.clear();
+				currentSQLQuery.setText("Initialized");
 			}
 		});		
 
+		/**
+		 * Function to open a File and loading the content
+		 * int the statementBox, if the File is a .sql File.
+		 */
 		loadFile.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				file = fileChooser.showOpenDialog(dbShowWindow);
@@ -494,12 +564,19 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Clears the StatementBox
+		 */
 		clearStatementBox.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				statementBox.clear();
 			}
 		});
 		
+		/**
+		 * Loads predefined Files for the Database Labor
+		 * and set the content to the statementBox
+		 */
 		tasks.setOnAction(new EventHandler<ActionEvent>() {
 			@Override public void handle(ActionEvent e) {
 				String selection = tasks.getValue();
@@ -527,11 +604,18 @@ public class Gui extends Application{
 			}
 		});
 		
+		/**
+		 * Submit the Content of the statementBox to the Method getResult
+		 * in the JDBCBikeShop Class, which executes the sqlQuerys.
+		 * If there are more than one Statement, they will be splitted
+		 * and exceuted after another.
+		 * The Result of the Statement will be placed in the SolutionField.
+		 */
 		submitStatement.setOnAction(new EventHandler<ActionEvent>(){
 			@Override public void handle(ActionEvent e) {
 				String sqlQuery = statementBox.getText();	
 				String result = "";
-				currentSQLQuery.setText("");
+				currentSQLQuery.clear();
 				try {
 					String[] fileContents = sqlQuery.trim().split(";");
 					
@@ -550,17 +634,24 @@ public class Gui extends Application{
 					sqlError.setContentText(ex.getMessage());
 					sqlError.setResizable(true);
 					sqlError.show();
+					currentSQLQuery.appendText("\n" + ex.getMessage());
 					ex.printStackTrace();
 				}
 			}
 		});
 		
+		//Creates the MainWindow
 		primaryStage.setTitle("Database");
 		primaryStage.setScene(new Scene(root, 400, 200));
 		primaryStage.show();
 		
 	}
 	
+	/**
+	 * Set the content of a File in the statementBox
+	 * @param file which content must be set on the statementBox
+	 * @throws IOException
+	 */
 	private void setTextOnStatementBox(File file) throws IOException {
 		List<String> line = new ArrayList<String>();
 		line = getContentFile(file);
@@ -570,6 +661,12 @@ public class Gui extends Application{
 		
 	}
 	
+	/**
+	 * Reads the File and puts the content as rows in a List.
+	 * @param file which content will be read.
+	 * @return a List of Rows
+	 * @throws IOException
+	 */
 	private List<String> getContentFile(File file) throws IOException {
 		List<String> result = new ArrayList<String>();
 		FileReader reader = new FileReader(file);
